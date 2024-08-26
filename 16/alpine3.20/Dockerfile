@@ -61,18 +61,6 @@ ENV DOCKER_PG_LLVM_DEPS \
 		clang15
 
 RUN set -eux; \
-	\
-	wget -O postgresql.tar.bz2 "https://ftp.postgresql.org/pub/source/v$PG_VERSION/postgresql-$PG_VERSION.tar.bz2"; \
-	echo "$PG_SHA256 *postgresql.tar.bz2" | sha256sum -c -; \
-	mkdir -p /usr/src/postgresql; \
-	tar \
-		--extract \
-		--file postgresql.tar.bz2 \
-		--directory /usr/src/postgresql \
-		--strip-components 1 \
-	; \
-	rm postgresql.tar.bz2; \
-	\
 	apk add --no-cache --virtual .build-deps \
 		$DOCKER_PG_LLVM_DEPS \
 		bison \
@@ -103,8 +91,11 @@ RUN set -eux; \
 		lz4-dev \
 # https://www.postgresql.org/docs/15/release-15.html "--with-zstd to enable Zstandard builds"
 		zstd-dev \
-	; \
-	\
+	;
+
+COPY postgres /usr/src/postgresql
+
+RUN set -eux; \
 	cd /usr/src/postgresql; \
 # update "DEFAULT_PGSOCKET_DIR" to "/var/run/postgresql" (matching Debian)
 # see https://anonscm.debian.org/git/pkg-postgresql/postgresql.git/tree/debian/patches/51-default-sockets-in-var.patch?id=8b539fcb3e093a521c095e70bdfa76887217b89f
